@@ -14,13 +14,13 @@ func main() {
 		AccessSecret: os.Getenv("JWT_ACCESS_SECRET"),
 	}
 
-	container := container.NewContainer(config)
+	c := container.NewContainer(config)
 
-	if err := container.Build(); err != nil {
+	if err := c.Build(); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := container.Server().Listen(); err != nil {
+	if err := c.Server().Listen(); err != nil {
 		panic(fmt.Sprintf("http server error: %s", err))
 	}
 }

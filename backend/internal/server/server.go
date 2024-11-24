@@ -38,10 +38,10 @@ func (s *Server) SetupRoutes(config RouterConfig) {
 		MaxAge:           300,
 	}))
 
-	apiRouter := s.App.Group("/api")
+	globalPrefix := s.App.Group("/api")
 
 	router := Router{
-		auth: apiRouter.Group("/auth"),
+		auth: globalPrefix.Group("/auth"),
 	}
 
 	setupPublicRoutes(router.auth, config)
@@ -52,7 +52,7 @@ func (s *Server) SetupRoutes(config RouterConfig) {
 }
 
 func setupPublicRoutes(router fiber.Router, config RouterConfig) {
-	router.Post("/register", config.AuthHandler.Register)
+	router.Post("/register", config.AuthHandler.CreateUserWithTenant)
 }
 
 func (s *Server) Listen() error {

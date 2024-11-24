@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"backend/internal/domain/request"
+	"backend/internal/domain/response"
 	"backend/internal/service"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,6 +18,25 @@ func NewAuthHandler(authService *service.AuthService) *AuthHandler {
 	}
 }
 
-func (h *AuthHandler) Register(c *fiber.Ctx) error {
-	return nil
+func (h *AuthHandler) CreateUserWithTenant(c *fiber.Ctx) error {
+	var req request.CreateUserWithTenantRequest
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	tenant, user, err := h.authService.CreateUserWithTenant(c.Context(), &req)
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"tenant": response.NewTenantResponse(*tenant),
+		"user":   response.NewUserResponse(*user),
+	})
 }

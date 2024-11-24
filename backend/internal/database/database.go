@@ -19,6 +19,7 @@ type Service interface {
 	QueryRow(query string, args ...interface{}) *sql.Row
 	Query(query string, args ...interface{}) (*sql.Rows, error)
 	Exec(query string, args ...interface{}) (sql.Result, error)
+	DB() *sql.DB
 }
 
 type service struct {
@@ -113,6 +114,10 @@ func (s *service) Health() map[string]string {
 	}
 
 	return stats
+}
+
+func (s *service) DB() *sql.DB {
+	return s.db
 }
 
 func (s *service) Close() error {

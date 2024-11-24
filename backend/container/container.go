@@ -13,11 +13,12 @@ type Container struct {
 	db     database.Service
 	server *server.Server
 
+	// Repositories
+	userRepository   *repository.UserRepository
+	tenantRepository *repository.TenantRepository
+
 	// Services
 	authService *service.AuthService
-
-	// Repositories
-	userRepository *repository.UserRepository
 
 	// Handlers
 	authHandler *handler.AuthHandler
@@ -34,7 +35,6 @@ func NewContainer(config *Config) *Container {
 }
 
 func (c *Container) Build() error {
-
 	if err := c.initDB(); err != nil {
 		return err
 	}
@@ -42,12 +42,11 @@ func (c *Container) Build() error {
 	c.initRepositories()
 	c.initServices()
 	c.initHandlers()
-	c.setupServer(c.db)
+	c.setupServer()
 
 	routerConfig := server.RouterConfig{
 		AuthHandler: c.authHandler,
 	}
-
 	c.setupRoutes(routerConfig)
 
 	return nil
@@ -65,10 +64,13 @@ func (c *Container) initDB() error {
 
 func (c *Container) initRepositories() {
 	c.userRepository = repository.NewUserRepository(c.db)
+	c.tenantRepository = repository.NewTenantRepository(c.db)
 }
 
 func (c *Container) initServices() {
 	c.authService = service.NewAuthService(
+		c.db.DB(),
+		c.tenantRepository,
 		c.userRepository,
 	)
 }
@@ -77,10 +79,10 @@ func (c *Container) initHandlers() {
 	c.authHandler = handler.NewAuthHandler(c.authService)
 }
 
-func (c *Container) setupRoutes(routerConfig server.RouterConfig) {
-	c.server.SetupRoutes(routerConfig)
+func (c *Container) setupServer() {
+	c.server = server.NewServer(c.db)
 }
 
-func (c *Container) setupServer(db database.Service) {
-	c.server = server.NewServer(db)
+func (c *Container) setupRoutes(routerConfig server.RouterConfig) {
+	c.server.SetupRoutes(routerConfig)
 }
